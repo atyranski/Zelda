@@ -6,6 +6,7 @@ import game.actors.IMapElement;
 import game.world.WorldMap;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -13,6 +14,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -32,10 +34,11 @@ public class App extends Application {
     final private int WINDOW_WIDTH = MAP_WIDTH * AREA_SIZE;
     final private int WINDOW_HEIGHT = MAP_HEIGHT * AREA_SIZE;
 
+    private StackPane sp_map;
     private WorldMap worldMap;
     private GridPane gp_mapBackground;
     private GridPane gp_mapElements;
-    private StackPane sp_map;
+    private VBox vbox_mainScreen;
 
     @Override
     public void init() throws Exception {
@@ -81,11 +84,21 @@ public class App extends Application {
                 e.printStackTrace();
             }
 
+//            Create main screen
+            ImageView imageView = new ImageView(new Image("mainScreenLogo.png"));
+            vbox_mainScreen = new VBox(imageView);
+            vbox_mainScreen.setStyle("-fx-background-color: white;");
+            vbox_mainScreen.setMinSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+            vbox_mainScreen.setMaxSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+            vbox_mainScreen.setAlignment(Pos.CENTER);
+
 //            Create stack pane
             sp_map = new StackPane();
             sp_map.getChildren().add(gp_mapBackground);
             sp_map.getChildren().add(gp_mapElements);
+            sp_map.getChildren().add(vbox_mainScreen);
 
+//            Create main container
             VBox container = new VBox(sp_map);
 
             Scene scene = new Scene(container, WINDOW_WIDTH, WINDOW_HEIGHT);
