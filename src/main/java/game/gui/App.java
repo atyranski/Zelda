@@ -6,8 +6,10 @@ import game.actors.IMapElement;
 import game.world.WorldMap;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -17,6 +19,8 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
 import java.io.FileInputStream;
@@ -40,9 +44,17 @@ public class App extends Application {
     private GridPane gp_mapElements;
     private VBox vbox_mainScreen;
 
+    private Renderer renderer;
+    private Thread thread;
+
     @Override
     public void init() throws Exception {
         super.init();
+    }
+
+    @Override
+    public void stop(){
+        System.out.println("[App | stop] - Link says: ima goin home//");
     }
 
     @Override
@@ -62,21 +74,9 @@ public class App extends Application {
             gp_mapElements.setMaxSize(WINDOW_WIDTH, WINDOW_HEIGHT);
             generateBoundaries(gp_mapElements);
 
-//            ---------------TEMP-------------------
-//            ImageView iv = null;
-//            try {
-//                iv = new ImageView(new Image(new FileInputStream("src/main/resources/map/characters/old_man.png")));
-//            } catch (FileNotFoundException e) {
-//                e.printStackTrace();
-//            };
-//            iv.setFitWidth(AREA_SIZE);
-//            iv.setFitHeight(AREA_SIZE);
-//            gp_mapElements.add(iv, 13,12);
-//            ---------------TEMP-------------------
-
 //            Create world map
             try {
-                worldMap = new WorldMap(MAP_WIDTH, MAP_HEIGHT);
+                worldMap = new WorldMap(MAP_WIDTH, MAP_HEIGHT, this);
                 generateMapBackground(gp_mapBackground, worldMap);
                 generateMapElements(gp_mapElements, worldMap);
 
@@ -85,8 +85,22 @@ public class App extends Application {
             }
 
 //            Create main screen
+            Button bt_start = new Button("Start");
+            bt_start.setMinSize(160, 60);
+            bt_start.setMaxSize(160, 60);
+            bt_start.setFont(Font.font("Verdana", FontWeight.BOLD, 25));
+            bt_start.setOnAction(actionEvent ->  {
+                this.sp_map.getChildren().remove(vbox_mainScreen);
+//                this.renderer = new Renderer(worldMap, this);
+//                this.thread = new Thread(renderer);
+//                thread.start();
+//                this.renderer.setIsRunning(true);
+            });
+
             ImageView imageView = new ImageView(new Image("mainScreenLogo.png"));
-            vbox_mainScreen = new VBox(imageView);
+
+            vbox_mainScreen = new VBox(imageView, bt_start);
+            vbox_mainScreen.setMargin(bt_start, new Insets(20));
             vbox_mainScreen.setStyle("-fx-background-color: white;");
             vbox_mainScreen.setMinSize(WINDOW_WIDTH, WINDOW_HEIGHT);
             vbox_mainScreen.setMaxSize(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -101,17 +115,24 @@ public class App extends Application {
 //            Create main container
             VBox container = new VBox(sp_map);
 
+//            Create scene
             Scene scene = new Scene(container, WINDOW_WIDTH, WINDOW_HEIGHT);
+
 //            scene.addEventHandler(KeyEvent.ANY, (key) -> worldMap.onKeyPress(key));
             scene.addEventHandler(KeyEvent.KEY_PRESSED, (key) -> {
-                System.out.println("[App] - pressed " + key.getCode());
+                System.out.println("[App | start] - pressed " + key.getCode());
             });
             scene.addEventHandler(KeyEvent.KEY_RELEASED, (key) -> {
-                System.out.println("[App] - released " + key.getCode());
+                System.out.println("[App | start] - released " + key.getCode());
+                worldMap.onKeyPress(key);
+                updateObjects();
             });
 
             primaryStage.setScene(scene);
             primaryStage.show();
+            primaryStage.setOnCloseRequest(e -> {
+                if(renderer != null) renderer.setIsOpened(false);
+            });
         });
     }
 
@@ -204,7 +225,7 @@ public class App extends Application {
         HashMap<String, IMapElement> mapElements = wp.getCurrentMapElements();
 
         for(String key: mapElements.keySet()){
-            System.out.println(mapElements.get(key));
+//            System.out.println(mapElements.get(key));
 
             ImageView actor = new ImageView(mapElements.get(key).getImage());
             actor.setFitWidth(AREA_SIZE);
@@ -212,6 +233,29 @@ public class App extends Application {
 
             gp.add(actor, mapElements.get(key).getX()+1, mapElements.get(key).getY()+1);
         }
+    }
+
+    public void updateObjects(){
+        Platform.runLater(() -> {
+            gp_mapElements.getChildren().clear();
+            generateBoundaries(gp_mapElements);
+            try {
+                generateMapElements(gp_mapElements, worldMap);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public void updateBackground(){
+        Platform.runLater(() -> {
+            gp_mapBackground.getChildren().clear();
+            try {
+                generateMapBackground(gp_mapBackground, worldMap);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
 }

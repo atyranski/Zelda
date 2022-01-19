@@ -1,4 +1,4 @@
-package game.world;
+package game.utils;
 
 public enum Directions {
     UP,

@@ -1,14 +1,19 @@
 package game.world;
 
+import java.util.Arrays;
+
 public class Dungeon {
     private Area[][] dungeon;
     private int width;
     private int heigh;
+    private int[] connections = new int[4];
 
-    public Dungeon(int width, int height, String[] template){
+    public Dungeon(int width, int height, String[] template, int[] connections){
         this.width = width;
         this.heigh = height;
         this.dungeon = new Area[width][height];
+        this.connections = connections;
+        System.out.println(Arrays.toString(connections));
 
         generateDungeon(template);
     }
@@ -29,5 +34,9 @@ public class Dungeon {
 
     public Area[][] getAreas() {
         return dungeon;
+    }
+
+    public int[] getConnections() {
+        return connections;
     }
 }
