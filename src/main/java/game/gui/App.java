@@ -1,20 +1,27 @@
 package game.gui;
 
+import game.actors.Player;
 import game.world.Area;
+import game.actors.IMapElement;
 import game.world.WorldMap;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class App extends Application {
 //    Number of tiles in the proper dimension
@@ -26,8 +33,9 @@ public class App extends Application {
     final private int WINDOW_HEIGHT = MAP_HEIGHT * AREA_SIZE;
 
     private WorldMap worldMap;
-    private GridPane gp_map;
+    private GridPane gp_mapBackground;
     private GridPane gp_mapElements;
+    private StackPane sp_map;
 
     @Override
     public void init() throws Exception {
@@ -42,33 +50,84 @@ public class App extends Application {
             primaryStage.setResizable(false);
 
 //            Create map grid
-            gp_map = new GridPane();
-            gp_map.setMinSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-            gp_map.setMaxSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+            gp_mapBackground = new GridPane();
+            gp_mapBackground.setMinSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+            gp_mapBackground.setMaxSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 
             gp_mapElements = new GridPane();
             gp_mapElements.setMinSize(WINDOW_WIDTH, WINDOW_HEIGHT);
             gp_mapElements.setMaxSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+            generateBoundaries(gp_mapElements);
+
+//            ---------------TEMP-------------------
+//            ImageView iv = null;
+//            try {
+//                iv = new ImageView(new Image(new FileInputStream("src/main/resources/map/characters/old_man.png")));
+//            } catch (FileNotFoundException e) {
+//                e.printStackTrace();
+//            };
+//            iv.setFitWidth(AREA_SIZE);
+//            iv.setFitHeight(AREA_SIZE);
+//            gp_mapElements.add(iv, 13,12);
+//            ---------------TEMP-------------------
 
 //            Create world map
             try {
                 worldMap = new WorldMap(MAP_WIDTH, MAP_HEIGHT);
-                generateObjects(gp_map, gp_mapElements, worldMap);
+                generateMapBackground(gp_mapBackground, worldMap);
+                generateMapElements(gp_mapElements, worldMap);
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
-            VBox container = new VBox(gp_map);
+//            Create stack pane
+            sp_map = new StackPane();
+            sp_map.getChildren().add(gp_mapBackground);
+            sp_map.getChildren().add(gp_mapElements);
+
+            VBox container = new VBox(sp_map);
 
             Scene scene = new Scene(container, WINDOW_WIDTH, WINDOW_HEIGHT);
+//            scene.addEventHandler(KeyEvent.ANY, (key) -> worldMap.onKeyPress(key));
+            scene.addEventHandler(KeyEvent.KEY_PRESSED, (key) -> {
+                System.out.println("[App] - pressed " + key.getCode());
+            });
+            scene.addEventHandler(KeyEvent.KEY_RELEASED, (key) -> {
+                System.out.println("[App] - released " + key.getCode());
+            });
 
             primaryStage.setScene(scene);
             primaryStage.show();
         });
     }
 
-    public void generateObjects(GridPane gp, GridPane gp_e, WorldMap wp) throws FileNotFoundException {
+    private void generateBoundaries(GridPane gp){
+        Label boundary;
+        boundary = new Label("");
+        boundary.setMinSize(0, 0);
+        boundary.setMaxSize(0, 0);
+        boundary.setStyle("-fx-background-color: red;");
+        gp.add(boundary, 0, 0);
+
+        for (int i=1; i<MAP_WIDTH+1; i++){
+            boundary = new Label("");
+            boundary.setMinSize(AREA_SIZE, 0);
+            boundary.setMaxSize(AREA_SIZE, 0);
+            boundary.setStyle("-fx-background-color: red;");
+            gp.add(boundary, i, 0);
+        }
+
+        for (int i=1; i<MAP_HEIGHT+1; i++){
+            boundary = new Label("");
+            boundary.setMinSize(0, AREA_SIZE);
+            boundary.setMaxSize(0, AREA_SIZE);
+            boundary.setStyle("-fx-background-color: red;");
+            gp.add(boundary, 0, i);
+        }
+    }
+
+    public void generateMapBackground(GridPane gp, WorldMap wp) throws FileNotFoundException {
         Area[][] areas = wp.getCurrentDungeon().getAreas();
         Image image;
 
@@ -124,8 +183,22 @@ public class App extends Application {
                 imageView.setFitHeight(AREA_SIZE);
 
                 gp.add(imageView, x, y);
-
             }
         }
     }
+
+    public void generateMapElements(GridPane gp, WorldMap wp) throws FileNotFoundException{
+        HashMap<String, IMapElement> mapElements = wp.getCurrentMapElements();
+
+        for(String key: mapElements.keySet()){
+            System.out.println(mapElements.get(key));
+
+            ImageView actor = new ImageView(mapElements.get(key).getImage());
+            actor.setFitWidth(AREA_SIZE);
+            actor.setFitHeight(AREA_SIZE);
+
+            gp.add(actor, mapElements.get(key).getX()+1, mapElements.get(key).getY()+1);
+        }
+    }
+
 }
