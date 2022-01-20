@@ -1,19 +1,21 @@
 package game.world;
 
-import java.util.Arrays;
+import game.actors.IMapElement;
+
+import java.util.ArrayList;
 
 public class Dungeon {
     private Area[][] dungeon;
     private int width;
     private int heigh;
-    private int[] connections = new int[4];
+    private int[] connections;
+    private ArrayList<IMapElement> actors = new ArrayList<>();
 
     public Dungeon(int width, int height, String[] template, int[] connections){
         this.width = width;
         this.heigh = height;
         this.dungeon = new Area[width][height];
         this.connections = connections;
-        System.out.println(Arrays.toString(connections));
 
         generateDungeon(template);
     }
@@ -34,6 +36,14 @@ public class Dungeon {
 
     public Area[][] getAreas() {
         return dungeon;
+    }
+
+    public ArrayList<IMapElement> getActors() {
+        return actors;
+    }
+
+    public void addActor(IMapElement actor) {
+        this.actors.add(actor);
     }
 
     public int[] getConnections() {

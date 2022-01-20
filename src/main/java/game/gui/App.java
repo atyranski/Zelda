@@ -1,6 +1,5 @@
 package game.gui;
 
-import game.actors.Player;
 import game.world.Area;
 import game.actors.IMapElement;
 import game.world.WorldMap;
@@ -13,7 +12,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -26,14 +24,16 @@ import javafx.stage.Stage;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Stack;
 
 public class App extends Application {
 //    Number of tiles in the proper dimension
     final private int MAP_WIDTH = 25;
     final private int MAP_HEIGHT = 15;
     final private int AREA_SIZE = 40;
+
 //    Size of program window
     final private int WINDOW_WIDTH = MAP_WIDTH * AREA_SIZE;
     final private int WINDOW_HEIGHT = MAP_HEIGHT * AREA_SIZE;
@@ -42,10 +42,12 @@ public class App extends Application {
     private WorldMap worldMap;
     private GridPane gp_mapBackground;
     private GridPane gp_mapElements;
+    private GridPane gp_interface;
     private VBox vbox_mainScreen;
+    private Scene scene;
 
-    private Renderer renderer;
-    private Thread thread;
+//    private Renderer renderer;
+//    private Thread thread;
 
     @Override
     public void init() throws Exception {
@@ -74,11 +76,18 @@ public class App extends Application {
             gp_mapElements.setMaxSize(WINDOW_WIDTH, WINDOW_HEIGHT);
             generateBoundaries(gp_mapElements);
 
+//            Create interface grid
+            gp_interface = new GridPane();
+            gp_interface.setMinSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+            gp_interface.setMaxSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+            generateInterfaceWireframe(gp_interface);
+
 //            Create world map
             try {
                 worldMap = new WorldMap(MAP_WIDTH, MAP_HEIGHT, this);
                 generateMapBackground(gp_mapBackground, worldMap);
                 generateMapElements(gp_mapElements, worldMap);
+                generateInterface(gp_interface, worldMap);
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -95,6 +104,14 @@ public class App extends Application {
 //                this.thread = new Thread(renderer);
 //                thread.start();
 //                this.renderer.setIsRunning(true);
+                this.scene.addEventHandler(KeyEvent.KEY_PRESSED, (key) -> {
+//                    System.out.println("[App | start] - pressed " + key.getCode());
+                });
+                this.scene.addEventHandler(KeyEvent.KEY_RELEASED, (key) -> {
+//                    System.out.println("[App | start] - released " + key.getCode());
+                    worldMap.onKeyPress(key);
+                    updateObjects();
+                });
             });
 
             ImageView imageView = new ImageView(new Image("mainScreenLogo.png"));
@@ -110,28 +127,21 @@ public class App extends Application {
             sp_map = new StackPane();
             sp_map.getChildren().add(gp_mapBackground);
             sp_map.getChildren().add(gp_mapElements);
+            sp_map.getChildren().add(gp_interface);
             sp_map.getChildren().add(vbox_mainScreen);
 
 //            Create main container
             VBox container = new VBox(sp_map);
 
 //            Create scene
-            Scene scene = new Scene(container, WINDOW_WIDTH, WINDOW_HEIGHT);
+            scene = new Scene(container, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 //            scene.addEventHandler(KeyEvent.ANY, (key) -> worldMap.onKeyPress(key));
-            scene.addEventHandler(KeyEvent.KEY_PRESSED, (key) -> {
-                System.out.println("[App | start] - pressed " + key.getCode());
-            });
-            scene.addEventHandler(KeyEvent.KEY_RELEASED, (key) -> {
-                System.out.println("[App | start] - released " + key.getCode());
-                worldMap.onKeyPress(key);
-                updateObjects();
-            });
 
             primaryStage.setScene(scene);
             primaryStage.show();
             primaryStage.setOnCloseRequest(e -> {
-                if(renderer != null) renderer.setIsOpened(false);
+//                if(renderer != null) renderer.setIsOpened(false);
             });
         });
     }
@@ -225,14 +235,83 @@ public class App extends Application {
         HashMap<String, IMapElement> mapElements = wp.getCurrentMapElements();
 
         for(String key: mapElements.keySet()){
-//            System.out.println(mapElements.get(key));
-
             ImageView actor = new ImageView(mapElements.get(key).getImage());
             actor.setFitWidth(AREA_SIZE);
             actor.setFitHeight(AREA_SIZE);
 
             gp.add(actor, mapElements.get(key).getX()+1, mapElements.get(key).getY()+1);
         }
+    }
+
+    public void generateInterface(GridPane gp, WorldMap wp) throws FileNotFoundException{
+        int[] playerHealth = wp.getPlayerHealt();
+        int health = playerHealth[0];
+        int healthMax = playerHealth[1];
+        Stack<ImageView> stack = new Stack();
+
+        for(int i=0; i< (healthMax/2); i++) {
+            ImageView empty = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/heart_empty.png")));
+            stack.push(empty);
+        }
+
+        if (health % 2 == 1){
+            ImageView half = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/heart_half.png")));
+            stack.push(half);
+            health -= 1;
+        }
+
+        for (int i=0; i< (health/2); i++) {
+            ImageView full = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/heart_full.png")));
+            stack.push(full);
+        }
+
+        ImageView[] toDisplay = new ImageView[5];
+        toDisplay[0] = stack.peek();
+        stack.pop();
+        toDisplay[1] = stack.peek();
+        toDisplay[2] = stack.peek();
+        toDisplay[3] = stack.peek();
+        toDisplay[4] = stack.peek();
+        System.out.println(Arrays.toString(toDisplay));
+
+        HBox hbox_healthBar = new HBox();
+        gp_interface.add(hbox_healthBar,3,2 );
+    }
+
+    private void generateInterfaceWireframe(GridPane gp){
+//        center top left
+        Label boundary = new Label("");
+        boundary.setMinSize(0, 0);
+        boundary.setMaxSize(0, 0);
+        boundary.setStyle("-fx-background-color: red;");
+        gp.add(boundary, 0, 0);
+
+        int[] widthParts = new int[]{ AREA_SIZE, 8*AREA_SIZE, 7*AREA_SIZE, 8*AREA_SIZE, AREA_SIZE };
+        int[] heightParts = new int[]{ AREA_SIZE, AREA_SIZE, 11*AREA_SIZE, AREA_SIZE, AREA_SIZE };
+
+        System.out.println(Arrays.toString(widthParts));
+        System.out.println(Arrays.toString(heightParts));
+
+        for (int j=0; j<4; j++){
+            for(int i=0; i<widthParts.length; i++){
+                boundary = new Label("");
+                boundary.setMinSize(widthParts[i], 1);
+                boundary.setMaxSize(widthParts[i], 1);
+                boundary.setStyle("-fx-background-color: red;");
+                gp.add(boundary, i+1, 0);
+            }
+        }
+
+        for (int j=0; j<4; j++){
+            for(int i=0; i<heightParts.length; i++){
+                boundary = new Label("");
+                boundary.setMinSize(1, heightParts[i]);
+                boundary.setMaxSize(1, heightParts[i]);
+                boundary.setStyle("-fx-background-color: red;");
+                gp.add(boundary, 0, i+1);
+            }
+        }
+
     }
 
     public void updateObjects(){

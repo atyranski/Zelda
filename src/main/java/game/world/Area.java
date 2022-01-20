@@ -5,8 +5,7 @@ import javafx.scene.image.Image;
 
 import java.util.ArrayList;
 
-public class Area implements IMapElement {
-    ArrayList<IMapElement> elements = new ArrayList<>();
+public class Area {
     private int x;
     private int y;
     private char tileType;
@@ -25,16 +24,8 @@ public class Area implements IMapElement {
         return y;
     }
 
-    @Override
-    public Image getImage() {
-        return null;
-    }
-
     public char getTileType() {
         return tileType;
     }
 
-    public ArrayList<IMapElement> getElements() {
-        return elements;
-    }
 }

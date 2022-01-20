@@ -12,16 +12,20 @@ import java.util.HashMap;
 
 public class Player implements IMapElement{
     private Image image;
+    private String key;
     private Directions orientation;
     private HashMap<Directions, Image> orientationImages = new HashMap<>();
     private int x;
     private int y;
     private WorldMap worldMap;
+    private int maxHealt = 10;
+    private int health = maxHealt;
 
-    public Player(int x, int y, WorldMap worldMap) throws FileNotFoundException {
+    public Player(int x, int y, WorldMap worldMap, String key) throws FileNotFoundException {
         this.initializeImages();
         this.orientation = Directions.DOWN;
         this.image = orientationImages.get(this.orientation);
+        this.key = key;
         this.worldMap = worldMap;
         this.x = x;
         this.y = y;
@@ -44,6 +48,27 @@ public class Player implements IMapElement{
     @Override
     public Image getImage() {
         return this.image;
+    }
+
+    @Override
+    public String getKey() {
+        return this.key;
+    }
+
+    public int getHealth() {
+        return health;
+    }
+
+    public int getMaxHealt() {
+        return maxHealt;
+    }
+
+    public void setHealth(int health) {
+        this.health = health;
+    }
+
+    public void setMaxHealt(int maxHealt) {
+        this.maxHealt = maxHealt;
     }
 
     private void initializeImages() throws FileNotFoundException {

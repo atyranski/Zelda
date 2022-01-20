@@ -2,6 +2,7 @@ package game.world;
 
 import game.actors.IMapElement;
 import game.actors.Merchant;
+import game.actors.Monster;
 import game.actors.Player;
 import game.gui.App;
 import game.utils.Directions;
@@ -25,7 +26,7 @@ public class WorldMap {
 
     private int width;
     private int heigh;
-    private int currentDungeon = 0;
+    private int currentDungeon;
 
 
     public WorldMap(int width, int height, App app) throws IOException {
@@ -35,7 +36,10 @@ public class WorldMap {
 
         buildMap();
         buildMapObjects();
+        changeDungeon(0);
+        app.updateObjects();
     }
+
 
     public void onKeyPress(KeyEvent key){
         switch (key.getCode()){
@@ -43,7 +47,7 @@ public class WorldMap {
             case DOWN -> turnPlayer(Directions.DOWN);
             case RIGHT -> turnPlayer(Directions.RIGHT);
             case LEFT -> turnPlayer(Directions.LEFT);
-        }
+        };
         this.app.updateObjects();
 //        System.out.println(mapElements.get("player").getImage());
     }
@@ -60,8 +64,26 @@ public class WorldMap {
         return new Vector2D(width, heigh);
     }
 
+    public int[] getPlayerHealt(){
+        Player player = (Player) mapElements.get("player");
+        return new int[]{ player.getHealth(), player.getMaxHealt() };
+    }
+
     public void changeDungeon(int dungeonNumber){
         this.currentDungeon = dungeonNumber;
+        Player player = null;
+
+        if(mapElements.containsKey("player")) player = (Player) mapElements.get("player");
+
+        ArrayList<IMapElement> actors = dungeons[currentDungeon].getActors();
+        mapElements = new HashMap<>();
+
+        for(IMapElement actor: actors){
+            mapElements.put(actor.getKey(), actor);
+        }
+
+        if (player != null) mapElements.put("player", player);
+
         this.app.updateBackground();
     }
 
@@ -102,21 +124,24 @@ public class WorldMap {
         String line = bf.readLine();
 
         while (line != null){
-            System.out.println(line);
+//            System.out.println(line);
             String[] row = line.split(" ");
 
             String role = row[0];
             int x = Integer.parseInt(String.valueOf(row[1]));
             int y = Integer.parseInt(String.valueOf(row[2]));
             String key = row[3];
+            int dungeonIndex = Integer.parseInt(String.valueOf(row[4]));
 
             IMapElement element = switch (role){
-                case "P" -> new Player(x, y, this);
-                case "M" -> new Merchant(x, y);
+                case "P" -> new Player(x, y, this, key);
+                case "C" -> new Merchant(x, y, key);
+                case "M" -> new Monster(x, y,this, key);
                 default -> throw new IllegalStateException("[WorldMap/buildMapObjects] Unexpected value: " + line.charAt(0));
             };
 
-            mapElements.put(key, element);
+//            mapElements.put(key, element);
+            dungeons[dungeonIndex].addActor(element);
             line = bf.readLine();
         }
         bf.close();
