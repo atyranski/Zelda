@@ -1,5 +1,7 @@
 package game.gui;
 
+import game.actors.Player;
+import game.items.IMapItem;
 import game.world.Area;
 import game.actors.IMapElement;
 import game.world.WorldMap;
@@ -17,6 +19,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
@@ -24,6 +27,7 @@ import javafx.stage.Stage;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Stack;
@@ -100,17 +104,17 @@ public class App extends Application {
             bt_start.setFont(Font.font("Verdana", FontWeight.BOLD, 25));
             bt_start.setOnAction(actionEvent ->  {
                 this.sp_map.getChildren().remove(vbox_mainScreen);
-//                this.renderer = new Renderer(worldMap, this);
-//                this.thread = new Thread(renderer);
-//                thread.start();
-//                this.renderer.setIsRunning(true);
+
+//                this.scene.addEventHandler(KeyEvent.ANY, (key) -> worldMap.onKeyPress(key));
+
                 this.scene.addEventHandler(KeyEvent.KEY_PRESSED, (key) -> {
 //                    System.out.println("[App | start] - pressed " + key.getCode());
+                    worldMap.onKeyPress(key);
+                    updateObjects();
                 });
                 this.scene.addEventHandler(KeyEvent.KEY_RELEASED, (key) -> {
 //                    System.out.println("[App | start] - released " + key.getCode());
-                    worldMap.onKeyPress(key);
-                    updateObjects();
+                    worldMap.onKeyUp(key);
                 });
             });
 
@@ -135,8 +139,6 @@ public class App extends Application {
 
 //            Create scene
             scene = new Scene(container, WINDOW_WIDTH, WINDOW_HEIGHT);
-
-//            scene.addEventHandler(KeyEvent.ANY, (key) -> worldMap.onKeyPress(key));
 
             primaryStage.setScene(scene);
             primaryStage.show();
@@ -236,46 +238,157 @@ public class App extends Application {
 
         for(String key: mapElements.keySet()){
             ImageView actor = new ImageView(mapElements.get(key).getImage());
-            actor.setFitWidth(AREA_SIZE);
-            actor.setFitHeight(AREA_SIZE);
 
-            gp.add(actor, mapElements.get(key).getX()+1, mapElements.get(key).getY()+1);
+            if(key.equals("player")){
+                Player player = (Player) mapElements.get(key);
+
+                if(player.isAttacking()) {
+                    switch (player.getOrientation()){
+                        case UP:
+                            actor.setFitWidth(AREA_SIZE);
+                            actor.setFitHeight(2*AREA_SIZE);
+                            gp.add(actor, mapElements.get(key).getX()+1, mapElements.get(key).getY(), 1, 2);
+                            break;
+
+                        case DOWN:
+                            actor.setFitWidth(AREA_SIZE);
+                            actor.setFitHeight(2*AREA_SIZE);
+                            gp.add(actor, mapElements.get(key).getX()+1, mapElements.get(key).getY()+1, 1, 2);
+                            break;
+
+                        case LEFT:
+                            actor.setFitWidth(2*AREA_SIZE);
+                            actor.setFitHeight(AREA_SIZE);
+                            gp.add(actor, mapElements.get(key).getX(), mapElements.get(key).getY()+1, 2, 1);
+                            break;
+
+                        case RIGHT:
+                            actor.setFitWidth(2*AREA_SIZE);
+                            actor.setFitHeight(AREA_SIZE);
+                            gp.add(actor, mapElements.get(key).getX()+1, mapElements.get(key).getY()+1, 2, 1);
+                            break;
+
+                        default:
+                            throw new IllegalStateException("Unexpected value: " + key);
+                    }
+
+
+                } else {
+                    actor.setFitWidth(AREA_SIZE);
+                    actor.setFitHeight(AREA_SIZE);
+                    gp.add(actor, mapElements.get(key).getX()+1, mapElements.get(key).getY()+1);
+
+                }
+            } else {
+                actor.setFitWidth(AREA_SIZE);
+                actor.setFitHeight(AREA_SIZE);
+                gp.add(actor, mapElements.get(key).getX()+1, mapElements.get(key).getY()+1);
+
+            }
+
+
+        }
+
+        HashMap<String, IMapItem> mapItems = wp.getMapItems();
+
+        for(String key: mapItems.keySet()){
+            ImageView item = new ImageView(mapItems.get(key).getImage());
+
+            item.setFitWidth(AREA_SIZE);
+            item.setFitHeight(AREA_SIZE);
+            gp.add(item, mapItems.get(key).getX()+1, mapItems.get(key).getY()+1);
         }
     }
 
     public void generateInterface(GridPane gp, WorldMap wp) throws FileNotFoundException{
-        int[] playerHealth = wp.getPlayerHealt();
-        int health = playerHealth[0];
-        int healthMax = playerHealth[1];
-        Stack<ImageView> stack = new Stack();
+//        Create Healthbar
+        Player player = wp.getPlayer();
+        ArrayList<ImageView> listHealth = new ArrayList<>();
+        int health = player.getHealth();
 
-        for(int i=0; i< (healthMax/2); i++) {
+        for(int i=0; i< (player.getMaxHealt()/2); i++) {
             ImageView empty = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/heart_empty.png")));
-            stack.push(empty);
+            empty.setFitHeight(AREA_SIZE);
+            empty.setFitWidth(AREA_SIZE);
+            listHealth.add(empty);
         }
 
-        if (health % 2 == 1){
+        if (player.getHealth() % 2 == 1){
             ImageView half = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/heart_half.png")));
-            stack.push(half);
+            half.setFitHeight(AREA_SIZE);
+            half.setFitWidth(AREA_SIZE);
+            listHealth.add(half);
             health -= 1;
         }
 
         for (int i=0; i< (health/2); i++) {
             ImageView full = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/heart_full.png")));
-            stack.push(full);
+            full.setFitHeight(AREA_SIZE);
+            full.setFitWidth(AREA_SIZE);
+            listHealth.add(full);
         }
 
-        ImageView[] toDisplay = new ImageView[5];
-        toDisplay[0] = stack.peek();
-        stack.pop();
-        toDisplay[1] = stack.peek();
-        toDisplay[2] = stack.peek();
-        toDisplay[3] = stack.peek();
-        toDisplay[4] = stack.peek();
-        System.out.println(Arrays.toString(toDisplay));
+        int n = listHealth.size();
 
         HBox hbox_healthBar = new HBox();
-        gp_interface.add(hbox_healthBar,3,2 );
+        if(player.getMaxHealt() == 10) hbox_healthBar = new HBox(listHealth.get(n-1), listHealth.get(n-2), listHealth.get(n-3), listHealth.get(n-4), listHealth.get(n-5));
+        else if (player.getMaxHealt() == 12) hbox_healthBar = new HBox(listHealth.get(n-1), listHealth.get(n-2), listHealth.get(n-3), listHealth.get(n-4), listHealth.get(n-5), listHealth.get(n-6));
+
+        hbox_healthBar.setStyle("-fx-background-color: #171717;");
+        gp.add(hbox_healthBar,4,2 );
+
+//        Create EQ
+        ImageView iv_greenRupee = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/green_rupee.png")));
+        ImageView iv_blueRupee = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/blue_rupee.png")));
+        ArrayList<ImageView> listItems = new ArrayList<>();
+
+        for(int i=0; i< 3; i++) {
+            ImageView empty = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/inventory_empty.png")));
+            empty.setFitHeight(2*AREA_SIZE);
+            empty.setFitWidth(2*AREA_SIZE);
+            listItems.add(empty);
+        }
+
+        for (int i=0; i< player.getEquipment().size(); i++) {
+            ImageView item = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/inventory_" + player.getEquipment().get(i).getName() + ".png")));
+            item.setFitHeight(2*AREA_SIZE);
+            item.setFitWidth(2*AREA_SIZE);
+            listItems.add(item);
+        }
+
+        iv_greenRupee.setFitWidth(AREA_SIZE);
+        iv_greenRupee.setFitHeight(AREA_SIZE);
+        iv_blueRupee.setFitWidth(AREA_SIZE);
+        iv_blueRupee.setFitHeight(AREA_SIZE);
+
+        Label l_greenAmount = new Label(String.valueOf(player.getGreenRupee()));
+        Label l_blueAmount = new Label(String.valueOf(player.getBlueRupee()));
+
+        l_greenAmount.setMinSize(35,26);
+        l_greenAmount.setMaxSize(35,26);
+        l_blueAmount.setMinSize(35,26);
+        l_blueAmount.setMaxSize(35,26);
+
+        l_greenAmount.setFont(Font.font("Verdana", FontWeight.BOLD, 22));
+        l_blueAmount.setFont(Font.font("Verdana", FontWeight.BOLD, 22));
+
+        l_greenAmount.setTextFill(Color.color(0.92,0.92,0.92));
+        l_blueAmount.setTextFill(Color.color(0.92,0.92,0.92));
+
+        HBox hbox_greenRupee = new HBox(iv_greenRupee, l_greenAmount);
+        HBox hbox_blueRupee = new HBox(iv_blueRupee, l_blueAmount);
+
+        hbox_greenRupee.setMargin(l_greenAmount, new Insets(5, 5, 0, 0));
+        hbox_blueRupee.setMargin(l_blueAmount, new Insets(5, 5, 0, 0));
+
+        int m = listItems.size();
+        HBox hBox_items = new HBox(listItems.get(m-1), listItems.get(m-2), listItems.get(m-3));
+        VBox vbox_credits = new VBox(hbox_greenRupee, hbox_blueRupee);
+
+
+        HBox hbox_equipment = new HBox(vbox_credits,hBox_items);
+        hbox_equipment.setStyle("-fx-background-color: #171717;");
+        gp.add(hbox_equipment,1,4 );
     }
 
     private void generateInterfaceWireframe(GridPane gp){
@@ -286,17 +399,17 @@ public class App extends Application {
         boundary.setStyle("-fx-background-color: red;");
         gp.add(boundary, 0, 0);
 
-        int[] widthParts = new int[]{ AREA_SIZE, 8*AREA_SIZE, 7*AREA_SIZE, 8*AREA_SIZE, AREA_SIZE };
-        int[] heightParts = new int[]{ AREA_SIZE, AREA_SIZE, 11*AREA_SIZE, AREA_SIZE, AREA_SIZE };
+        int[] widthParts = new int[]{ 8*AREA_SIZE, AREA_SIZE, 9*AREA_SIZE, 6*AREA_SIZE, AREA_SIZE };
+        int[] heightParts = new int[]{ AREA_SIZE, AREA_SIZE, 11*AREA_SIZE, 2*AREA_SIZE};
 
-        System.out.println(Arrays.toString(widthParts));
-        System.out.println(Arrays.toString(heightParts));
+//        System.out.println(Arrays.toString(widthParts));
+//        System.out.println(Arrays.toString(heightParts));
 
         for (int j=0; j<4; j++){
             for(int i=0; i<widthParts.length; i++){
                 boundary = new Label("");
-                boundary.setMinSize(widthParts[i], 1);
-                boundary.setMaxSize(widthParts[i], 1);
+                boundary.setMinSize(widthParts[i], 0);
+                boundary.setMaxSize(widthParts[i], 0);
                 boundary.setStyle("-fx-background-color: red;");
                 gp.add(boundary, i+1, 0);
             }
@@ -305,13 +418,24 @@ public class App extends Application {
         for (int j=0; j<4; j++){
             for(int i=0; i<heightParts.length; i++){
                 boundary = new Label("");
-                boundary.setMinSize(1, heightParts[i]);
-                boundary.setMaxSize(1, heightParts[i]);
+                boundary.setMinSize(0, heightParts[i]);
+                boundary.setMaxSize(0, heightParts[i]);
                 boundary.setStyle("-fx-background-color: red;");
                 gp.add(boundary, 0, i+1);
             }
         }
 
+    }
+
+    public void updateBackground(){
+        Platform.runLater(() -> {
+            gp_mapBackground.getChildren().clear();
+            try {
+                generateMapBackground(gp_mapBackground, worldMap);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public void updateObjects(){
@@ -326,15 +450,17 @@ public class App extends Application {
         });
     }
 
-    public void updateBackground(){
+    public void updateInterface(){
         Platform.runLater(() -> {
-            gp_mapBackground.getChildren().clear();
+            gp_interface.getChildren().clear();
+            generateInterfaceWireframe(gp_interface);
             try {
-                generateMapBackground(gp_mapBackground, worldMap);
+                generateInterface(gp_interface, worldMap);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
         });
     }
+
 
 }

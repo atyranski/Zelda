@@ -1,5 +1,6 @@
 package game.actors;
 
+import game.utils.Vector2D;
 import javafx.scene.image.Image;
 
 import java.io.FileInputStream;
@@ -26,6 +27,11 @@ public class Merchant implements IMapElement {
     @Override
     public int getY() {
         return this.y;
+    }
+
+    @Override
+    public Vector2D getPosition() {
+        return new Vector2D(x,y);
     }
 
     @Override

@@ -1,0 +1,7 @@
+S woodenSword 14 9 0 1
+S whiteSword 14 5 0 2
+B bomb 10 9 0 0
+P potionFull 10 5 0 1
+P potion 11 7 0 1
+R blueRupee 11 9 0 1
+R greenRupee 12 9 0 1

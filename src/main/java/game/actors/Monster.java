@@ -1,6 +1,7 @@
 package game.actors;
 
 import game.utils.Directions;
+import game.utils.Vector2D;
 import game.world.WorldMap;
 import javafx.scene.image.Image;
 
@@ -16,10 +17,11 @@ public class Monster implements IMapElement{
     private int x;
     private int y;
     private int monsterType;
+    private int health;
     private WorldMap worldMap;
 
     public Monster(int x, int y, WorldMap worldMap, String key) throws FileNotFoundException {
-        this.monsterType = Integer.parseInt(key.substring(key.length()-1));
+        this.identifyMonster(key);
         this.initializeImages();
         this.orientation = Directions.DOWN;
         this.image = orientationImages.get(this.orientation);
@@ -29,6 +31,7 @@ public class Monster implements IMapElement{
         this.y = y;
     }
 
+//    Getters
     @Override
     public Image getImage() {
         return this.image;
@@ -47,6 +50,44 @@ public class Monster implements IMapElement{
     @Override
     public int getY() {
         return this.y;
+    }
+
+    public int getHealth() {
+        return health;
+    }
+
+    @Override
+    public Vector2D getPosition() {
+        return new Vector2D(x, y);
+    }
+
+
+//    Setters
+    public void takeDamage(int damage) {
+        this.health -= damage;
+    }
+
+
+//    Initialize methods
+    private void identifyMonster(String key){
+        this.monsterType = Integer.parseInt(key.substring(key.length()-1));
+
+        switch (monsterType) {
+            case 1:
+                this.health = 8;
+                break;
+            case 2:
+                this.health = 10;
+                break;
+            case 3:
+                this.health = 12;
+                break;
+            case 4:
+                this.health = 14;
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + key);
+        }
     }
 
     private void initializeImages() throws FileNotFoundException {

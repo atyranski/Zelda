@@ -1,6 +1,7 @@
 package game.world;
 
 import game.actors.IMapElement;
+import game.items.IMapItem;
 
 import java.util.ArrayList;
 
@@ -10,6 +11,7 @@ public class Dungeon {
     private int heigh;
     private int[] connections;
     private ArrayList<IMapElement> actors = new ArrayList<>();
+    private ArrayList<IMapItem> items = new ArrayList<>();
 
     public Dungeon(int width, int height, String[] template, int[] connections){
         this.width = width;
@@ -34,6 +36,7 @@ public class Dungeon {
 //        }
     }
 
+//    Getters
     public Area[][] getAreas() {
         return dungeon;
     }
@@ -42,8 +45,18 @@ public class Dungeon {
         return actors;
     }
 
+    public ArrayList<IMapItem> getItems() {
+        return items;
+    }
+
+
+//    Adding
     public void addActor(IMapElement actor) {
         this.actors.add(actor);
+    }
+
+    public void addItem(IMapItem item){
+        this.items.add(item);
     }
 
     public int[] getConnections() {

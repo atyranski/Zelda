@@ -1,18 +1,19 @@
-package game.actors;
+package game.items;
 
 import game.utils.Vector2D;
 import javafx.scene.image.Image;
 
-public interface IMapElement {
-    String key = null;
+public interface IMapItem {
 
     public Image getImage();
-
-    public String getKey();
 
     public int getX();
 
     public int getY();
+
+    public String getKey();
+
+    public String getName();
 
     public Vector2D getPosition();
 

@@ -1,5 +1,6 @@
 package game.actors;
 
+import game.items.IMapItem;
 import game.utils.Directions;
 import game.utils.Vector2D;
 import game.world.Dungeon;
@@ -8,6 +9,7 @@ import javafx.scene.image.Image;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Player implements IMapElement{
@@ -15,11 +17,17 @@ public class Player implements IMapElement{
     private String key;
     private Directions orientation;
     private HashMap<Directions, Image> orientationImages = new HashMap<>();
+    private HashMap<Directions, Image> attackImages = new HashMap<>();
     private int x;
     private int y;
     private WorldMap worldMap;
-    private int maxHealt = 10;
-    private int health = maxHealt;
+    private int maxHealt = 12;
+    private int health = 3;
+    private int strength = 2;
+    private ArrayList<IMapItem> equipment = new ArrayList<>();
+    private int greenRupee = 0;
+    private int blueRupee = 0;
+    private boolean isAttacking = false;
 
     public Player(int x, int y, WorldMap worldMap, String key) throws FileNotFoundException {
         this.initializeImages();
@@ -31,6 +39,8 @@ public class Player implements IMapElement{
         this.y = y;
     }
 
+
+//    Getters
     @Override
     public int getX() {
         return this.x;
@@ -39,6 +49,10 @@ public class Player implements IMapElement{
     @Override
     public int getY() {
         return this.y;
+    }
+
+    public Vector2D getPosition(){
+        return new Vector2D(x, y);
     }
 
     public Directions getOrientation() {
@@ -63,6 +77,27 @@ public class Player implements IMapElement{
         return maxHealt;
     }
 
+    public int getStrength() {
+        return strength;
+    }
+
+    public boolean isAttacking(){
+        return this.isAttacking;
+    }
+
+    public int getGreenRupee() {
+        return greenRupee;
+    }
+
+    public int getBlueRupee() {
+        return blueRupee;
+    }
+
+    public ArrayList<IMapItem> getEquipment() {
+        return equipment;
+    }
+
+    //    Setters
     public void setHealth(int health) {
         this.health = health;
     }
@@ -71,13 +106,22 @@ public class Player implements IMapElement{
         this.maxHealt = maxHealt;
     }
 
-    private void initializeImages() throws FileNotFoundException {
-        this.orientationImages.put(Directions.UP, new Image(new FileInputStream("src/main/resources/map/player/player_back.png")));
-        this.orientationImages.put(Directions.DOWN, new Image(new FileInputStream("src/main/resources/map/player/player.png")));
-        this.orientationImages.put(Directions.RIGHT, new Image(new FileInputStream("src/main/resources/map/player/player_right.png")));
-        this.orientationImages.put(Directions.LEFT, new Image(new FileInputStream("src/main/resources/map/player/player_left.png")));
-    }
 
+//    Initialize methods
+    private void initializeImages() throws FileNotFoundException {
+    this.orientationImages.put(Directions.UP, new Image(new FileInputStream("src/main/resources/map/player/player_back.png")));
+    this.orientationImages.put(Directions.DOWN, new Image(new FileInputStream("src/main/resources/map/player/player.png")));
+    this.orientationImages.put(Directions.RIGHT, new Image(new FileInputStream("src/main/resources/map/player/player_right.png")));
+    this.orientationImages.put(Directions.LEFT, new Image(new FileInputStream("src/main/resources/map/player/player_left.png")));
+
+    this.attackImages.put(Directions.UP, new Image(new FileInputStream("src/main/resources/map/player/player_attack_back.png")));
+    this.attackImages.put(Directions.DOWN, new Image(new FileInputStream("src/main/resources/map/player/player_attack.png")));
+    this.attackImages.put(Directions.RIGHT, new Image(new FileInputStream("src/main/resources/map/player/player_attack_right.png")));
+    this.attackImages.put(Directions.LEFT, new Image(new FileInputStream("src/main/resources/map/player/player_attack_left.png")));
+}
+
+
+//    Players actions
     public void turn(Directions direction){
         this.orientation = direction;
         this.image = this.orientationImages.get(orientation);
@@ -129,5 +173,38 @@ public class Player implements IMapElement{
         }
 
         return false;
+    }
+
+    public void attackStart(){
+//        System.out.println("[Player | attackStart] - Attack Start");
+        this.image = this.attackImages.get(orientation);
+        this.isAttacking = true;
+    }
+
+    public void attackStop(){
+//        System.out.println("[Player | attackStop] - Attack Stop");
+
+        this.image = this.orientationImages.get(orientation);
+        this.isAttacking = false;
+    }
+
+    public void addToEquipment(IMapItem item) {
+        this.equipment.add(item);
+    }
+
+    public void addgreenRupee() {
+        this.greenRupee += 1;
+    }
+
+    public void addBlueRupee() {
+        this.blueRupee += 1;
+    }
+
+    public void restoreFullHealth(){
+        this.health = this.maxHealt;
+    }
+
+    public void heal(int amount){
+        this.health = Math.min(this.maxHealt, this.health + amount);
     }
 }
