@@ -62,4 +62,27 @@ public class Dungeon {
     public int[] getConnections() {
         return connections;
     }
+
+//    Subs
+    public void removeActor(IMapElement actor) {
+        int toRemove = -1;
+
+        for(int i=0; i<actors.size(); i++){
+            if(actor.getKey().equals(actors.get(i).getKey())) toRemove = i;
+        }
+
+        if(toRemove == -1) throw new IllegalStateException("Invalid actor key: " + actor.getKey());
+        else actors.remove(toRemove);
+    }
+
+    public void removeItem(IMapItem item){
+        int toRemove = -1;
+
+        for(int i=0; i<items.size(); i++){
+            if(item.getKey().equals(items.get(i).getKey())) toRemove = i;
+        }
+
+        if(toRemove == -1) throw new IllegalStateException("Invalid actor key: " + item.getKey());
+        else items.remove(toRemove);
+    }
 }

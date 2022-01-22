@@ -1,3 +1,4 @@
 P 12 7 player 0
 C 12 11 oldMan 0
-M 10 10 monster1 1 
+M 10 10 monster1 1
+M 9 10 monster1 1

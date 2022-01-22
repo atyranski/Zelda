@@ -48,6 +48,7 @@ public class WorldMap {
             case RIGHT -> turnPlayer(Directions.RIGHT);
             case LEFT -> turnPlayer(Directions.LEFT);
             case Z -> playerAttackStart();
+            case C -> playerSwitchItem();
         };
         this.app.updateObjects();
         this.app.updateInterface();
@@ -81,7 +82,6 @@ public class WorldMap {
         return player;
     }
 
-//    TU
     public void changeDungeon(int dungeonNumber){
         this.currentDungeon = dungeonNumber;
         Player player = null;
@@ -139,12 +139,24 @@ public class WorldMap {
                     }
                 }
 
-                if(!picked.equals("")) mapItems.remove(picked);
+                if(!picked.equals("")) {
+                    dungeons[currentDungeon].removeItem(mapItems.get(picked));
+                    mapItems.remove(picked);
+                }
             }
 
         } else player.turn(direction);
 
         return true;
+    }
+
+    public boolean canMoveTo(Vector2D position){
+        Boolean result = true;
+        for(String key: mapElements.keySet()){
+            if(mapElements.get(key).getPosition().equals(position)) result = false;
+        }
+
+        return result;
     }
 
     private boolean playerAttackStart(){
@@ -160,28 +172,38 @@ public class WorldMap {
         Player player = (Player) mapElements.get("player");
         String killed = "";
 
-        Vector2D hitPosition = switch (player.getOrientation()){
-            case UP -> player.getPosition().add(new Vector2D(0, -1));
-            case DOWN -> player.getPosition().add(new Vector2D(0, 1));
-            case RIGHT -> player.getPosition().add(new Vector2D(1, 0));
-            case LEFT -> player.getPosition().add(new Vector2D(-1, 0));
-        };
+        if(player.attackStop()){
+            Vector2D hitPosition = switch (player.getOrientation()){
+                case UP -> player.getPosition().add(new Vector2D(0, -1));
+                case DOWN -> player.getPosition().add(new Vector2D(0, 1));
+                case RIGHT -> player.getPosition().add(new Vector2D(1, 0));
+                case LEFT -> player.getPosition().add(new Vector2D(-1, 0));
+            };
 
-        for(String key: mapElements.keySet()){
-            IMapElement element = mapElements.get(key);
-            if(element.getPosition().equals(hitPosition) && element.getClass().equals(Monster.class)){
-                System.out.println("[WorldMap | playerAttackStop] - DAMAGED");
-                Monster monster = (Monster) element;
-                monster.takeDamage(player.getStrength());
+            for(String key: mapElements.keySet()){
+                IMapElement element = mapElements.get(key);
+                if(element.getPosition().equals(hitPosition) && element.getClass().equals(Monster.class)){
+                    Monster monster = (Monster) element;
+                    monster.takeDamage(player.getStrength());
 
-                if(monster.getHealth() <= 0) killed = key;
+                    if(monster.getHealth() <= 0) killed = key;
+                }
+            }
+
+            if (!killed.equals("")) {
+                dungeons[currentDungeon].removeActor(mapElements.get(killed));
+                mapElements.remove(killed);
             }
         }
 
-        if (!killed.equals("")) mapElements.remove(killed);
-
-        player.attackStop();
         app.updateObjects();
+
+        return true;
+    }
+
+    private boolean playerSwitchItem(){
+        Player player = (Player) mapElements.get("player");
+        player.takeNextItem();
 
         return true;
     }

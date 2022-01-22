@@ -342,18 +342,20 @@ public class App extends Application {
         ImageView iv_blueRupee = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/blue_rupee.png")));
         ArrayList<ImageView> listItems = new ArrayList<>();
 
+        for (int i=0; i< player.getEquipment().size(); i++) {
+            if(player.getEquipment().get(i) != null){
+                ImageView item = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/inventory_" + player.getEquipment().get(i).getName() + ".png")));
+                item.setFitHeight(2*AREA_SIZE);
+                item.setFitWidth(2*AREA_SIZE);
+                listItems.add(item);
+            }
+        }
+
         for(int i=0; i< 3; i++) {
             ImageView empty = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/inventory_empty.png")));
             empty.setFitHeight(2*AREA_SIZE);
             empty.setFitWidth(2*AREA_SIZE);
             listItems.add(empty);
-        }
-
-        for (int i=0; i< player.getEquipment().size(); i++) {
-            ImageView item = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/inventory_" + player.getEquipment().get(i).getName() + ".png")));
-            item.setFitHeight(2*AREA_SIZE);
-            item.setFitWidth(2*AREA_SIZE);
-            listItems.add(item);
         }
 
         iv_greenRupee.setFitWidth(AREA_SIZE);
@@ -381,12 +383,20 @@ public class App extends Application {
         hbox_greenRupee.setMargin(l_greenAmount, new Insets(5, 5, 0, 0));
         hbox_blueRupee.setMargin(l_blueAmount, new Insets(5, 5, 0, 0));
 
-        int m = listItems.size();
-        HBox hBox_items = new HBox(listItems.get(m-1), listItems.get(m-2), listItems.get(m-3));
         VBox vbox_credits = new VBox(hbox_greenRupee, hbox_blueRupee);
 
+        GridPane gp_items = new GridPane();
+        int m = listItems.size();
+        for(int i=0; i<3; i++){
+            gp_items.add(listItems.get(i),i, 0);
+        }
 
-        HBox hbox_equipment = new HBox(vbox_credits,hBox_items);
+        ImageView currentItem = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/inventory_current.png")));
+        currentItem.setFitHeight(2*AREA_SIZE);
+        currentItem.setFitWidth(2*AREA_SIZE);
+        gp_items.add(currentItem,player.getCurrentItem(), 0);
+
+        HBox hbox_equipment = new HBox(vbox_credits,gp_items);
         hbox_equipment.setStyle("-fx-background-color: #171717;");
         gp.add(hbox_equipment,1,4 );
     }

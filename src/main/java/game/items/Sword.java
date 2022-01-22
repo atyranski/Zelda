@@ -51,6 +51,10 @@ public class Sword implements IMapItem {
         return new Vector2D(x,y);
     }
 
+    public int getStrength() {
+        return strength;
+    }
+
     private void initializeImage() throws FileNotFoundException {
         if (name.equals("woodenSword")) image = new Image(new FileInputStream("src/main/resources/map/gui/woodenSword.png"));
         else image = new Image(new FileInputStream("src/main/resources/map/gui/whiteSword.png"));

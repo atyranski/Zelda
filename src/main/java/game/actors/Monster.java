@@ -25,7 +25,7 @@ public class Monster implements IMapElement{
         this.initializeImages();
         this.orientation = Directions.DOWN;
         this.image = orientationImages.get(this.orientation);
-        this.key = key;
+        this.key = key + x + y;
         this.worldMap = worldMap;
         this.x = x;
         this.y = y;

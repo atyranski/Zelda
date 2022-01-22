@@ -1,6 +1,7 @@
 package game.actors;
 
 import game.items.IMapItem;
+import game.items.Sword;
 import game.utils.Directions;
 import game.utils.Vector2D;
 import game.world.Dungeon;
@@ -10,7 +11,9 @@ import javafx.scene.image.Image;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Queue;
 
 public class Player implements IMapElement{
     private Image image;
@@ -23,8 +26,10 @@ public class Player implements IMapElement{
     private WorldMap worldMap;
     private int maxHealt = 12;
     private int health = 3;
-    private int strength = 2;
+    private int strength = 0;
     private ArrayList<IMapItem> equipment = new ArrayList<>();
+    private int eqFreeSlot = 0;
+    private int currentItem = 0;
     private int greenRupee = 0;
     private int blueRupee = 0;
     private boolean isAttacking = false;
@@ -97,7 +102,11 @@ public class Player implements IMapElement{
         return equipment;
     }
 
-    //    Setters
+    public int getCurrentItem() {
+        return currentItem;
+    }
+
+//    Setters
     public void setHealth(int health) {
         this.health = health;
     }
@@ -134,6 +143,8 @@ public class Player implements IMapElement{
             case RIGHT -> new Vector2D(1,0);
             case LEFT -> new Vector2D(-1,0);
         };
+
+        if (!worldMap.canMoveTo(this.getPosition().add(shift))) return false;
 
         Vector2D worldSize = worldMap.getWorldSize();
         if(x + shift.getX() < 0){
@@ -177,19 +188,55 @@ public class Player implements IMapElement{
 
     public void attackStart(){
 //        System.out.println("[Player | attackStart] - Attack Start");
-        this.image = this.attackImages.get(orientation);
-        this.isAttacking = true;
+        if(strength > 0){
+            this.image = this.attackImages.get(orientation);
+            this.isAttacking = true;
+        }
     }
 
-    public void attackStop(){
+    public boolean attackStop(){
 //        System.out.println("[Player | attackStop] - Attack Stop");
 
-        this.image = this.orientationImages.get(orientation);
-        this.isAttacking = false;
+        if(strength > 0){
+            this.image = this.orientationImages.get(orientation);
+            this.isAttacking = false;
+            return true;
+        }
+
+        return false;
     }
 
     public void addToEquipment(IMapItem item) {
-        this.equipment.add(item);
+        if(this.equipment.size() > 0) this.currentItem = Math.min(this.currentItem + 1, 2);
+        this.equipment.add(0, item);
+        this.activateCurrentItem();
+    }
+
+    public void takeNextItem(){
+        this.currentItem = switch (this.currentItem){
+            case 0 -> 1;
+            case 1 -> 2;
+            case 2 -> 0;
+            default -> throw new IllegalStateException("Unexpected value: " + this.currentItem);
+        };
+
+        this.activateCurrentItem();
+    }
+
+    private void activateCurrentItem(){
+        if(currentItem < equipment.size()){
+            switch (equipment.get(currentItem).getKey()){
+                case "S":
+                    Sword sword = (Sword) equipment.get(currentItem);
+                    this.strength = sword.getStrength();
+                    break;
+                case "B":
+                    this.strength = 0;
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + equipment.get(currentItem).getKey());
+            }
+        } else this.strength = 0;
     }
 
     public void addgreenRupee() {
