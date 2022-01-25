@@ -1,5 +1,6 @@
 package game.actors;
 
+import game.items.Equipment;
 import game.items.IMapItem;
 import game.items.Sword;
 import game.utils.Directions;
@@ -27,12 +28,8 @@ public class Player implements IMapElement{
     private int maxHealt = 12;
     private int health = 3;
     private int strength = 0;
-    private ArrayList<IMapItem> equipment = new ArrayList<>();
-    private int eqFreeSlot = 0;
-    private int currentItem = 0;
-    private int greenRupee = 0;
-    private int blueRupee = 0;
     private boolean isAttacking = false;
+    private Equipment equipment = new Equipment(this);
 
     public Player(int x, int y, WorldMap worldMap, String key) throws FileNotFoundException {
         this.initializeImages();
@@ -90,20 +87,8 @@ public class Player implements IMapElement{
         return this.isAttacking;
     }
 
-    public int getGreenRupee() {
-        return greenRupee;
-    }
-
-    public int getBlueRupee() {
-        return blueRupee;
-    }
-
-    public ArrayList<IMapItem> getEquipment() {
+    public Equipment getEquipment() {
         return equipment;
-    }
-
-    public int getCurrentItem() {
-        return currentItem;
     }
 
 //    Setters
@@ -113,6 +98,10 @@ public class Player implements IMapElement{
 
     public void setMaxHealt(int maxHealt) {
         this.maxHealt = maxHealt;
+    }
+
+    public void setStrength(int strength) {
+        this.strength = strength;
     }
 
 
@@ -207,44 +196,15 @@ public class Player implements IMapElement{
     }
 
     public void addToEquipment(IMapItem item) {
-        if(this.equipment.size() > 0) this.currentItem = Math.min(this.currentItem + 1, 2);
-        this.equipment.add(0, item);
-        this.activateCurrentItem();
-    }
-
-    public void takeNextItem(){
-        this.currentItem = switch (this.currentItem){
-            case 0 -> 1;
-            case 1 -> 2;
-            case 2 -> 0;
-            default -> throw new IllegalStateException("Unexpected value: " + this.currentItem);
-        };
-
-        this.activateCurrentItem();
-    }
-
-    private void activateCurrentItem(){
-        if(currentItem < equipment.size()){
-            switch (equipment.get(currentItem).getKey()){
-                case "S":
-                    Sword sword = (Sword) equipment.get(currentItem);
-                    this.strength = sword.getStrength();
-                    break;
-                case "B":
-                    this.strength = 0;
-                    break;
-                default:
-                    throw new IllegalStateException("Unexpected value: " + equipment.get(currentItem).getKey());
-            }
-        } else this.strength = 0;
-    }
-
-    public void addgreenRupee() {
-        this.greenRupee += 1;
-    }
-
-    public void addBlueRupee() {
-        this.blueRupee += 1;
+        switch (item.getName()){
+            case "greenRupee" -> equipment.addGreenRupee(1);
+            case "blueRupee" -> equipment.addBlueRupee(1);
+            case "potion" -> equipment.addPotion(1);
+            case "bomb" -> equipment.addBomb(1);
+            case "woodenSword" -> equipment.setSword((Sword) item);
+            case "whiteSword" -> equipment.setSword((Sword) item);
+            case "shield" -> equipment.setShield(true);
+        }
     }
 
     public void restoreFullHealth(){

@@ -340,63 +340,80 @@ public class App extends Application {
 //        Create EQ
         ImageView iv_greenRupee = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/green_rupee.png")));
         ImageView iv_blueRupee = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/blue_rupee.png")));
-        ArrayList<ImageView> listItems = new ArrayList<>();
-
-        for (int i=0; i< player.getEquipment().size(); i++) {
-            if(player.getEquipment().get(i) != null){
-                ImageView item = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/inventory_" + player.getEquipment().get(i).getName() + ".png")));
-                item.setFitHeight(2*AREA_SIZE);
-                item.setFitWidth(2*AREA_SIZE);
-                listItems.add(item);
-            }
-        }
-
-        for(int i=0; i< 3; i++) {
-            ImageView empty = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/inventory_empty.png")));
-            empty.setFitHeight(2*AREA_SIZE);
-            empty.setFitWidth(2*AREA_SIZE);
-            listItems.add(empty);
-        }
+        ImageView iv_bomb = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/bomb.png")));
+        ImageView iv_potionFull = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/potion.png")));
 
         iv_greenRupee.setFitWidth(AREA_SIZE);
         iv_greenRupee.setFitHeight(AREA_SIZE);
         iv_blueRupee.setFitWidth(AREA_SIZE);
         iv_blueRupee.setFitHeight(AREA_SIZE);
+        iv_bomb.setFitWidth(AREA_SIZE);
+        iv_bomb.setFitHeight(AREA_SIZE);
+        iv_potionFull.setFitWidth(AREA_SIZE);
+        iv_potionFull.setFitHeight(AREA_SIZE);
 
-        Label l_greenAmount = new Label(String.valueOf(player.getGreenRupee()));
-        Label l_blueAmount = new Label(String.valueOf(player.getBlueRupee()));
+        Label l_greenAmount = new Label(String.valueOf(player.getEquipment().getGreenRupee()));
+        Label l_blueAmount = new Label(String.valueOf(player.getEquipment().getBlueRupee()));
+        Label l_bomb = new Label(String.valueOf(player.getEquipment().getBomb()));
+        Label l_potionFull = new Label(String.valueOf(player.getEquipment().getPotion()));
 
         l_greenAmount.setMinSize(35,26);
         l_greenAmount.setMaxSize(35,26);
         l_blueAmount.setMinSize(35,26);
         l_blueAmount.setMaxSize(35,26);
+        l_bomb.setMinSize(35,26);
+        l_bomb.setMaxSize(35,26);
+        l_potionFull.setMinSize(35,26);
+        l_potionFull.setMaxSize(35,26);
 
         l_greenAmount.setFont(Font.font("Verdana", FontWeight.BOLD, 22));
         l_blueAmount.setFont(Font.font("Verdana", FontWeight.BOLD, 22));
+        l_bomb.setFont(Font.font("Verdana", FontWeight.BOLD, 22));
+        l_potionFull.setFont(Font.font("Verdana", FontWeight.BOLD, 22));
 
         l_greenAmount.setTextFill(Color.color(0.92,0.92,0.92));
         l_blueAmount.setTextFill(Color.color(0.92,0.92,0.92));
+        l_bomb.setTextFill(Color.color(0.92,0.92,0.92));
+        l_potionFull.setTextFill(Color.color(0.92,0.92,0.92));
 
         HBox hbox_greenRupee = new HBox(iv_greenRupee, l_greenAmount);
         HBox hbox_blueRupee = new HBox(iv_blueRupee, l_blueAmount);
+        HBox hbox_bomb = new HBox(iv_bomb, l_bomb);
+        HBox hbox_potionFull = new HBox(iv_potionFull, l_potionFull);
 
         hbox_greenRupee.setMargin(l_greenAmount, new Insets(5, 5, 0, 0));
         hbox_blueRupee.setMargin(l_blueAmount, new Insets(5, 5, 0, 0));
+        hbox_bomb.setMargin(l_bomb, new Insets(5, 5, 0, 0));
+        hbox_potionFull.setMargin(l_potionFull, new Insets(5, 5, 0, 0));
 
         VBox vbox_credits = new VBox(hbox_greenRupee, hbox_blueRupee);
+        VBox vbox_potions = new VBox(hbox_bomb, hbox_potionFull);
+//
+//        GridPane gp_items = new GridPane();
+//        int m = listItems.size();
+//        for(int i=0; i<3; i++){
+//            gp_items.add(listItems.get(i),i, 0);
+//        }
+//
+//        ImageView currentItem = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/inventory_current.png")));
+//        currentItem.setFitHeight(2*AREA_SIZE);
+//        currentItem.setFitWidth(2*AREA_SIZE);
+//        gp_items.add(currentItem,player.getCurrentItem(), 0);
 
-        GridPane gp_items = new GridPane();
-        int m = listItems.size();
-        for(int i=0; i<3; i++){
-            gp_items.add(listItems.get(i),i, 0);
-        }
+        ImageView iv_sword;
+        if(player.getEquipment().getSword() == null) iv_sword = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/inventory_empty.png")));
+        else iv_sword = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/inventory_"+ player.getEquipment().getSword().getName() +".png")));
 
-        ImageView currentItem = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/inventory_current.png")));
-        currentItem.setFitHeight(2*AREA_SIZE);
-        currentItem.setFitWidth(2*AREA_SIZE);
-        gp_items.add(currentItem,player.getCurrentItem(), 0);
+        ImageView iv_shield;
+        if(!player.getEquipment().isShield()) iv_shield = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/inventory_empty.png")));
+        else iv_shield = new ImageView(new Image(new FileInputStream("src/main/resources/map/gui/inventory_shield.png")));
 
-        HBox hbox_equipment = new HBox(vbox_credits,gp_items);
+        iv_sword.setFitHeight(2*AREA_SIZE);
+        iv_sword.setFitWidth(2*AREA_SIZE);
+        iv_shield.setFitHeight(2*AREA_SIZE);
+        iv_shield.setFitWidth(2*AREA_SIZE);
+
+        HBox hbox_equipment = new HBox(vbox_credits,vbox_potions, iv_sword, iv_shield);
         hbox_equipment.setStyle("-fx-background-color: #171717;");
         gp.add(hbox_equipment,1,4 );
     }
@@ -471,6 +488,4 @@ public class App extends Application {
             }
         });
     }
-
-
 }

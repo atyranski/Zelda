@@ -17,4 +17,8 @@ public interface IMapItem {
 
     public Vector2D getPosition();
 
+    public void setX(int x);
+
+    public void setY(int  y);
+
 }

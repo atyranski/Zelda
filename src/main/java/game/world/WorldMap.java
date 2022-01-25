@@ -19,7 +19,6 @@ public class WorldMap {
     private App app;
 
     private Dungeon[] dungeons = new Dungeon[DUNGEONS_AMOUNT];
-//    private ArrayList<IMapElement> mapElements = new ArrayList<>();
     private HashMap<String, IMapElement> mapElements = new HashMap<>();
     private HashMap<String, IMapItem> mapItems = new HashMap<>();
 
@@ -48,11 +47,11 @@ public class WorldMap {
             case RIGHT -> turnPlayer(Directions.RIGHT);
             case LEFT -> turnPlayer(Directions.LEFT);
             case Z -> playerAttackStart();
-            case C -> playerSwitchItem();
+            case X -> usePotion();
+            case C -> useBomb();
         };
         this.app.updateObjects();
         this.app.updateInterface();
-//        System.out.println(mapElements.get("player").getImage());
     }
 
     public void onKeyUp(KeyEvent key){
@@ -103,7 +102,7 @@ public class WorldMap {
         mapItems = new HashMap<>();
 
         for(IMapItem item: items){
-            mapItems.put(item.getName(), item);
+            mapItems.put(item.getName() + item.getX() + item.getY(), item);
         }
 
         this.app.updateBackground();
@@ -115,23 +114,20 @@ public class WorldMap {
 
         if(player.getOrientation() == direction) {
             if(player.move(dungeons[currentDungeon])){
+//                -------------------------------
                 for(String key: mapItems.keySet()){
                     IMapItem item = mapItems.get(key);
                     if(item.getPosition().equals(player.getPosition())){
                         switch (item.getKey()){
                             case "S":
-                                player.addToEquipment(item);
-                                break;
                             case "B":
-                                player.addToEquipment(item);
-                                break;
+                            case "T":
                             case "R":
-                                if(item.getName().equals("greenRupee")) player.addgreenRupee();
-                                else player.addBlueRupee();
+                                player.addToEquipment(item);
                                 break;
                             case "P":
-                                if(item.getName().equals("potion")) player.heal(2);
-                                else player.restoreFullHealth();
+                                if(item.getName().equals("potion")) player.addToEquipment(item);
+                                else player.heal(2);
                                 break;
                         }
                         picked = key;
@@ -143,6 +139,8 @@ public class WorldMap {
                     dungeons[currentDungeon].removeItem(mapItems.get(picked));
                     mapItems.remove(picked);
                 }
+
+
             }
 
         } else player.turn(direction);
@@ -191,8 +189,15 @@ public class WorldMap {
             }
 
             if (!killed.equals("")) {
+                Monster monster = (Monster) mapElements.get(killed);
+                IMapItem reward = monster.getReward();
+                reward.setX(monster.getX());
+                reward.setY(monster.getY());
+
                 dungeons[currentDungeon].removeActor(mapElements.get(killed));
+                dungeons[currentDungeon].addItem(reward);
                 mapElements.remove(killed);
+                mapItems.put(reward.getName() + reward.getX() + reward.getY(), reward);
             }
         }
 
@@ -201,11 +206,16 @@ public class WorldMap {
         return true;
     }
 
-    private boolean playerSwitchItem(){
+    private void usePotion(){
         Player player = (Player) mapElements.get("player");
-        player.takeNextItem();
+        if(player.getEquipment().getPotion() > 0 && player.getHealth() < player.getMaxHealt()) {
+            player.restoreFullHealth();
+            player.getEquipment().addPotion(-1);
+        }
+    }
 
-        return true;
+    private void useBomb(){
+
     }
 
     private boolean buildMap() throws IOException {
@@ -278,8 +288,9 @@ public class WorldMap {
             IMapItem element = switch (key){
                 case "S" -> new Sword(x, y, key, name, parameter);
                 case "B" -> new Bomb(x, y, key, name);
-                case "P" -> new Potion(x, y, key, name, parameter);
-                case "R" -> new Rupee(x, y, key, name, parameter);
+                case "P" -> new Potion(x, y, key, name);
+                case "R" -> new Rupee(x, y, key, name);
+                case "T" -> new Shield(x, y, key, name);
                 default -> throw new IllegalStateException("[WorldMap/buildItems] Unexpected value: " + line);
             };
 
